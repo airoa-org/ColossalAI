@@ -17,7 +17,7 @@ jobs:
     if: |
       github.event.pull_request.draft == false &&
       github.event.pull_request.base.repo.full_name == 'hpcaitech/ColossalAI' && github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       anyChanged: ${{ steps.setup-matrix.outputs.anyChanged }}
@@ -64,7 +64,7 @@ jobs:
             changedFileName="${file}:${changedFileName}"
           done
           echo "$changedFileName was changed"
-          res=`python .github/workflows/scripts/example_checks/detect_changed_example.py --fileNameList $changedFileName`
+          res=`python3 .github/workflows/scripts/example_checks/detect_changed_example.py --fileNameList $changedFileName`
           echo "All changed examples are $res"
 
           if [ "$res" == "[]" ]; then
@@ -85,12 +85,12 @@ jobs:
       needs.detect-changed-example.outputs.anyChanged == 'true'
     name: Test the changed example
     needs: detect-changed-example
-    runs-on: [self-hosted, gpu]
+    runs-on: [self-hosted, ubuntu-latest]
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.detect-changed-example.outputs.matrix)}}
     container:
-      image: hpcaitech/pytorch-cuda:2.2.2-12.1.0
+      image: image-cloud.luchentech.com/hpcaitech/pytorch-cuda:2.2.2-12.1.0
       options: --gpus all --rm -v /data/scratch/examples-data:/data/ -v /dev/shm
     timeout-minutes: 30
     concurrency:
